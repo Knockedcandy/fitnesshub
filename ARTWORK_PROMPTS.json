@@ -1,0 +1,23 @@
+{
+  "generator": "Built-in imagegen tool",
+  "assets": [
+    {
+      "path": "public/exercises/movements-v2/chair-squat.webp",
+      "prompt": "Use case: precise-object-edit. Asset: FitLifeHub two-panel exercise illustration, 1536 x 1024 landscape. Image 1 is the edit target. Preserve the dark graphite muscular android, cyan visor, polished 3D rendering, coral quadriceps highlights, deep navy background, two equal portrait panels with thin rounded violet borders, and text-free composition. Correct the Chair Squat to match the app's written Smith-machine instructions: remove the bench completely from both panels. Keep the loaded bar attached to the two vertical Smith-machine guide rails, resting across the upper back in both panels. Feet are shoulder width and visibly forward of the bar's vertical line. Left panel standing start with knees nearly straight. Right panel a controlled squat, hips lowered and knees bent about 90 degrees, torso supported upright under the bar, feet planted firmly. The machine bar slides vertically along its guide rails. One modest cyan downward arrow in right panel. Keep full body and machine readable, no bench or chair, no disconnected bar, no extra fingers or limbs, no text or watermark."
+    },
+    {
+      "path": "public/exercises/movements-v2/barbell-incline-shoulder-raise.webp",
+      "prompt": "Use case: precise-object-edit. Asset: FitLifeHub two-panel exercise illustration, 1536 x 1024 landscape. Image 1 is the edit target. Preserve android identity, cyan visor, graphite anatomy, dark incline bench, navy backdrop, coral shoulder highlight, violet rounded panel borders, and polished 3D illustration style. Clarify the movement as an Incline Shoulder Raise, a small scapular protraction, not a bench press. Both panels show the identical inclined body position and the same light loaded barbell held over the upper chest with both elbows fully straight and unchanged. Left panel shoulders resting back on the incline pad. Right panel shoulders reach a few centimeters forward away from the pad, shifting the straight arms and bar slightly higher. Show the subtle shoulder lift clearly with two very short cyan arrows by the shoulders only. Keep the bar centered over the upper chest, parallel and straight, both wrists neutral, feet flat on the floor. Do not exaggerate the range, bend elbows, lift the torso, or use a long pressing arrow. No extra limbs, no text, no watermark."
+    },
+    {
+      "path": "public/exercises/fitlifehub-muscle-map.webp",
+      "prompt": "Use case: precise-object-edit. Image 1 is the edit target: the existing FitLifeHub front/back muscle-map bitmap has a broken semitransparent background with horizontal stripes and rectangular gaps. Repair by making the entire background genuinely transparent, preserving the current transparency intent. Keep exactly the two existing full-body purple anatomical android figures, one facing forward and one facing backward, their cyan eyes, black shorts and shoes, coral red muscle regions, and cyan pulse mark on the front figure's chest. Preserve their illustrated linework, anatomy, positions, scale, and all highlights. Remove ALL colored backdrop remnants, horizontal glitch bands, dark rectangles, glow fields, and background texture. Foreground figures should be opaque and have clean antialiased edges. 1536 x 1024 landscape canvas, entire heads and shoes inside frame, no labels, no added elements, no text, no watermark.",
+      "transparent_background": true
+    },
+    {
+      "path": "public/exercises/movements-v2/dumbbell-scaption.webp",
+      "prompt": "Use case: precise-object-edit. Image 1 is the edit target. Preserve the two equal rounded violet-border panels, navy background, dark graphite android identity, cyan visor, coral shoulder highlights, polished 3D style, text-free 1536 x 1024 landscape composition and the left panel. Correct only the right panel: this must be a SCAPTION raise, not a lateral T raise. Both fully extended arms point diagonally FORWARD of the chest at shoulder height, with hands in front of the body and a modest separation: each arm 30 degrees outward from straight ahead, together forming a narrow forward-facing V, not arms stretched out to either side. Show that depth clearly from a slightly elevated three-quarter camera; the arms and dumbbells are foreshortened because they reach toward the viewer. One light dumbbell in each hand, neutral grip and thumbs up. Keep both hands and dumbbells clearly separated, elbows softly straight, shoulders relaxed. Small cyan movement arrows. No T pose, no sideways lateral raise, no extra limbs, no extra fingers, no text, no watermark.",
+      "transparent_background": false
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+.dev.vars*
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Test coverage and logs
+coverage/
+*.log
+
+# Local hosting configuration
+.vercel/
+.wrangler/
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+dist/
+.vinext/
+.cloudflare/

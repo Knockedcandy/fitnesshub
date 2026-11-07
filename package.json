@@ -1,0 +1,53 @@
+{
+  "name": "fitlifehub",
+  "version": "2.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "node scripts/validate-project.mjs && node scripts/validate-coach.mjs && node scripts/validate-storage.mjs && node scripts/validate-local-ui.mjs",
+    "test:without-images": "node scripts/validate-project.mjs --skip-artwork && node scripts/validate-coach.mjs && node scripts/validate-storage.mjs && node scripts/validate-local-ui.mjs",
+    "check": "npm run lint && npm test && npm run build",
+    "check:without-images": "npm run lint && npm run test:without-images && npm run build",
+    "check:deploy": "node --env-file-if-exists=.env.local scripts/verify-production-env.mjs",
+    "test:storage": "node scripts/validate-storage.mjs && node scripts/validate-local-ui.mjs",
+    "dev:vinext": "vite dev --port 3001",
+    "build:vinext": "vite build",
+    "start:vinext": "vite preview",
+    "deploy:vinext": "vinext-cloudflare deploy"
+  },
+  "dependencies": {
+    "@vinext/cloudflare": "^1.3.3",
+    "framer-motion": "12.40.0",
+    "lucide-react": "1.31.0",
+    "next": "16.3.8",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-server-dom-webpack": "^19.3.1",
+    "recharts": "3.10.1",
+    "vinext": "^1.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^2.0.0-beta.v.12",
+    "@tailwindcss/postcss": "4.3.3",
+    "@testing-library/react": "^16.3.3",
+    "@vitejs/plugin-react": "^6.2.1",
+    "@vitejs/plugin-rsc": "^0.5.39",
+    "autoprefixer": "10.5.4",
+    "cf": "^1.0.0-beta.28",
+    "esbuild": "^0.28.2",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.3.8",
+    "fake-indexeddb": "^6.2.7",
+    "jsdom": "26.1.0",
+    "postcss": "8.5.26",
+    "tailwindcss": "4.3.3",
+    "vite": "^8.3.0"
+  },
+  "type": "module"
+}
