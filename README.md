@@ -1,13 +1,13 @@
 # FitLifeHub — local data edition
 
 This version saves the workout profile, generated plan, nutrition targets,
-food logs, weight logs, personal records, workout completions, and progress
+food logs, body weight, exercise weight history, personal records, workout completions, and progress
 photos in IndexedDB. No account, remote database, or database credentials are
 needed. The existing matching A/B workouts remain intact.
 
 ## Run locally
 
-Use Node.js 22.13.0 or newer.
+Use Node.js 24.22.1 (or a version supported by the installed Cloudflare CLI).
 
 ```bash
 npm ci
@@ -17,6 +17,12 @@ npm run dev
 Open http://localhost:3000. Keep the same browser profile, hostname, and port
 when testing: browser data belongs to that exact website origin.
 
+On a workout plan or in exercise search, choose **Log weight** beside
+**Tutorial**. Save the date, weight in pounds, sets, and reps for each session.
+The dialog shows recent sessions and the change from the previous entry; the
+Progress page charts the weights for each exercise. For bodyweight movements,
+enter 0 for no added weight. Use the same convention for dumbbells each time.
+
 ## Saving and backups
 
 - Saves finish only after the IndexedDB transaction commits. Errors are shown
@@ -24,7 +30,7 @@ when testing: browser data belongs to that exact website origin.
 - Existing guest records from localStorage migrate once on the same origin.
   The original copies are left intact until you delete local data.
 - The My Data page at `/account` exports a versioned JSON backup, including
-  photos. Import replaces current records only after validation and an explicit
+  exercise weight history and photos. Import replaces current records only after validation and an explicit
   RESTORE confirmation. Delete Local Data requires DELETE confirmation.
 - Photos are stored as binary Blobs, not localStorage strings. Supported uploads
   are JPEG, PNG, WebP, GIF, and AVIF, up to 5 MB each. Backup imports support files

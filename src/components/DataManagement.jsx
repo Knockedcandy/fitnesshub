@@ -52,7 +52,7 @@ export default function DataManagement() {
   const disabled = busy || loading;
   return <div className="grid gap-6">
     <GlassCard><h2 className="text-2xl font-bold">Your data stays on this device</h2>
-      <p className="mt-3 text-slate-300">Plans, food logs, weight, personal records, workout history, and photos are saved in this browser. No login is required and records do not automatically sync to another device.</p>
+      <p className="mt-3 text-slate-300">Plans, food logs, body weight, exercise weight history, personal records, workout history, and photos are saved in this browser. No login is required and records do not automatically sync to another device.</p>
       <p className="mt-3 text-sm text-amber-100">Clearing site data, private browsing, browser cleanup, or losing this device can remove your records. Download a backup regularly and before changing browsers or website addresses. Anyone using this browser profile may access these records.</p>
     </GlassCard>
     {status && <p role="status" className="rounded-2xl bg-cyan-400/10 p-4 text-sm text-cyan-100">{status}</p>}

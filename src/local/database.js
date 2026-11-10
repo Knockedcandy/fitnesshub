@@ -1,6 +1,6 @@
 const DATABASE = 'fitlifehub-local';
 const VERSION = 1;
-export const DATA_KEYS = ['fitnessPlannerProfile', 'fitnessPlannerPlan', 'fitnessPlannerNutrition', 'fitnessNutritionLogs', 'progressWeightLogs', 'progressPRLogs', 'progressWorkoutLogs', 'progressPhotoLogs'];
+export const DATA_KEYS = ['fitnessPlannerProfile', 'fitnessPlannerPlan', 'fitnessPlannerNutrition', 'fitnessNutritionLogs', 'progressWeightLogs', 'progressPRLogs', 'progressExerciseLoads', 'progressWorkoutLogs', 'progressPhotoLogs'];
 const LIST_KEYS = DATA_KEYS.slice(3);
 let opening;
 
@@ -120,6 +120,35 @@ export const deleteWeightLog = (id) => remove('progressWeightLogs', id);
 export const addPRLog = (data) => add('progressPRLogs', data);
 export const getPRLogs = () => list('progressPRLogs');
 export const deletePRLog = (id) => remove('progressPRLogs', id);
+const notifyExerciseLoadsChanged = () => {
+  if (typeof window !== 'undefined') window.dispatchEvent(new window.Event('fitlifehub:exercise-loads-changed'));
+};
+function validExerciseLoad(row) {
+  const date = String(row?.date || '');
+  const parsed = new Date(`${date}T00:00:00.000Z`);
+  return typeof row?.exercise === 'string' && row.exercise.trim().length > 0 && row.exercise.length <= 120
+    && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date
+    && Number.isFinite(row.weight) && row.weight >= 0 && row.weight <= 2000
+    && Number.isInteger(row.sets) && row.sets >= 1 && row.sets <= 20
+    && Number.isInteger(row.reps) && row.reps >= 1 && row.reps <= 100
+    && (row.notes === undefined || (typeof row.notes === 'string' && row.notes.length <= 120));
+}
+export async function addExerciseLoad(data) {
+  const entry = { ...data, exercise: String(data?.exercise || '').trim(), notes: String(data?.notes || '').trim() };
+  if (!validExerciseLoad(entry)) throw new Error('Enter a valid date, weight, sets, and reps.');
+  const saved = await add('progressExerciseLoads', entry);
+  notifyExerciseLoadsChanged();
+  return saved;
+}
+export async function getExerciseLoads(exerciseName) {
+  const entries = await list('progressExerciseLoads');
+  const name = String(exerciseName || '').trim().toLocaleLowerCase();
+  return name ? entries.filter((row) => String(row.exercise).toLocaleLowerCase() === name) : entries;
+}
+export async function deleteExerciseLoad(id) {
+  await remove('progressExerciseLoads', id);
+  notifyExerciseLoadsChanged();
+}
 export const addWorkoutLog = (data) => add('progressWorkoutLogs', data);
 export const getWorkoutLogs = () => list('progressWorkoutLogs');
 export const deleteWorkoutLog = (id) => remove('progressWorkoutLogs', id);
@@ -185,9 +214,10 @@ export async function importBackup(backup) {
     if (LIST_KEYS.includes(key)) {
       if (!Array.isArray(value) || value.some((row) => !row || typeof row !== 'object' || typeof row.id !== 'string' || typeof row.date !== 'string')) throw new Error('The backup contains an invalid log.');
       if (new Set(value.map((row) => row.id)).size !== value.length) throw new Error('The backup contains duplicate log IDs.');
-      const numberFields = { fitnessNutritionLogs: ['calories','protein','carbs','fats'], progressWeightLogs: ['weight'], progressPRLogs: ['weight','reps'] }[key] || [];
+      const numberFields = { fitnessNutritionLogs: ['calories','protein','carbs','fats'], progressWeightLogs: ['weight'], progressPRLogs: ['weight','reps'], progressExerciseLoads: ['weight','sets','reps'] }[key] || [];
       if (value.some((row) => numberFields.some((field) => !Number.isFinite(row[field]) || row[field] < 0))) throw new Error('The backup contains invalid numeric values.');
       if (key === 'progressPRLogs' && value.some((row) => typeof row.exercise !== 'string')) throw new Error('The backup contains an invalid exercise name.');
+      if (key === 'progressExerciseLoads' && value.some((row) => !validExerciseLoad(row))) throw new Error('The backup contains an invalid exercise weight log.');
       if (key === 'fitnessNutritionLogs' && value.some((row) => typeof row.meal !== 'string')) throw new Error('The backup contains an invalid food name.');
     } else if (value !== null && (typeof value !== 'object' || Array.isArray(value))) throw new Error('The backup contains invalid planner data.');
   }

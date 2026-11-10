@@ -23,7 +23,7 @@ let app;
 let cleanup;
 try {
   await build({
-    stdin: { contents: `export {default as StorageProvider} from './src/local/StorageProvider.jsx'; export {default as WorkoutGenerator} from './src/components/WorkoutGenerator.jsx'; export {default as Results} from './src/app/results/page.jsx'; export {default as Nutrition} from './src/components/NutritionCalculator.jsx'; export {default as Progress} from './src/components/ProgressTracker.jsx'; export {default as MyData} from './src/components/DataManagement.jsx'; export * from './src/local/database.js';`, resolveDir: root, loader: 'jsx' },
+    stdin: { contents: `export {default as StorageProvider} from './src/local/StorageProvider.jsx'; export {default as WorkoutGenerator} from './src/components/WorkoutGenerator.jsx'; export {default as Results} from './src/app/results/page.jsx'; export {default as ExerciseCard} from './src/components/ExerciseCard.jsx'; export {default as Nutrition} from './src/components/NutritionCalculator.jsx'; export {default as Progress} from './src/components/ProgressTracker.jsx'; export {default as MyData} from './src/components/DataManagement.jsx'; export * from './src/local/database.js';`, resolveDir: root, loader: 'jsx' },
     bundle: true, platform: 'node', format: 'esm', jsx: 'automatic', outfile: output, packages: 'external',
     plugins: [{ name: 'local-ui-test', setup(builder) {
       builder.onResolve({ filter: /^(next\/(navigation|image|link)|recharts)$/ }, (args) => ({ path: args.path, namespace: 'mock' }));
@@ -55,7 +55,22 @@ try {
   assert.equal((await app.loadPlannerData()).profile.days, 4);assert.equal(globalThis.__testRouter.paths.length, 1);
   cleanup();app.closeDatabase();
   mount(app.Results);await screen.findByRole('button', { name: 'Show next workout' });
-  assert.ok(screen.getAllByText(/Upper A/).length);cleanup();
+  assert.ok(screen.getAllByText(/Upper A/).length);
+  assert.ok(screen.getAllByRole('button', { name: /^Log weight for / }).length, 'Workout plan exercises must expose weight logging.');cleanup();
+
+  const exercise = { name: 'Goblet Squat', muscle: 'Legs', equipment: 'Dumbbell', difficulty: 'Beginner', description: 'Squat with a dumbbell.', alternatives: [] };
+  mount(() => React.createElement(app.ExerciseCard, { exercise }));await enabled('Log weight for Goblet Squat');
+  fireEvent.click(screen.getByRole('button', { name: 'Log weight for Goblet Squat' }));
+  fireEvent.change(screen.getByLabelText('Weight used (lb)'), { target: { value: '25' } });
+  fireEvent.change(screen.getByLabelText('Sets', { exact: true }), { target: { value: '3' } });
+  fireEvent.change(screen.getByLabelText('Reps per set'), { target: { value: '10' } });
+  fireEvent.submit(screen.getByRole('button', { name: 'Save exercise weight' }).closest('form'));
+  await screen.findByText('Exercise weight saved.');
+  assert.equal((await app.getExerciseLoads('Goblet Squat'))[0].weight, 25);
+  fireEvent.click(screen.getByRole('button', { name: 'Close', exact: true }));
+  await screen.findByText(/Last: 25 lb/);
+  cleanup();app.closeDatabase();
+  mount(() => React.createElement(app.ExerciseCard, { exercise }));await screen.findByText(/Last: 25 lb/);cleanup();
 
   mount(app.Nutrition);await enabled('Add Food');
   fireEvent.change(screen.getByPlaceholderText('Meal / food name'), { target: { value: 'Rice' } });
@@ -78,18 +93,21 @@ try {
   fireEvent.change(document.querySelector('input[type=file]'), { target: { files: [photo] } });
   await screen.findByText('Photo saved.');assert.equal((await app.getPhotoLogs()).length, 1);cleanup();app.closeDatabase();
   mount(app.Progress);await screen.findByAltText(/Progress photo from/);assert.ok(screen.getAllByText(/181 lb/).length);cleanup();
+  mount(app.Progress);await screen.findByText('Exercise weight trends');
+  await waitFor(() => assert.ok([...document.querySelectorAll('p')].some((item) => item.textContent.includes('Latest: 25 lb'))));
+  cleanup();
 
   let downloadUrl;
   dom.window.HTMLAnchorElement.prototype.click = function() { downloadUrl = this.href; };
   mount(app.MyData);await enabled('Download Backup');fireEvent.click(screen.getByRole('button', { name: 'Download Backup' }));
   await screen.findByText(/Backup download started/);
-  const backup = await (await fetch(downloadUrl)).json();assert.equal(backup.photos.length, 1);assert.equal(backup.values.progressPRLogs.length, 1);URL.revokeObjectURL(downloadUrl);
+  const backup = await (await fetch(downloadUrl)).json();assert.equal(backup.photos.length, 1);assert.equal(backup.values.progressPRLogs.length, 1);assert.equal(backup.values.progressExerciseLoads.length, 1);URL.revokeObjectURL(downloadUrl);
   assert.equal(screen.getByRole('button', { name: 'Delete Local Data' }).disabled, true);
   fireEvent.change(screen.getByLabelText('Choose backup file'), { target: { files: [new File([JSON.stringify(backup)], 'backup.json', { type: 'application/json' })] } });
   await screen.findByText(/Type RESTORE/);assert.equal(screen.getByRole('button', { name: 'Restore Backup' }).disabled, true);
   fireEvent.change(screen.getByLabelText('Type RESTORE to replace local data'), { target: { value: 'RESTORE' } });
   assert.equal(screen.getByRole('button', { name: 'Restore Backup' }).disabled, false);
-  console.log('Validated component interactions with jsdom and IndexedDB: plan generation/reopen, failed-save rollback, results, food add/reload/delete, weight/PR saves, photo reload, backup download and restore/delete confirmations.');
+  console.log('Validated component interactions with jsdom and IndexedDB: plan generation/reopen, failed-save rollback, exercise weight logging and trend, results, food add/reload/delete, body weight/PR saves, photo reload, backup download and restore/delete confirmations.');
 } finally {
   cleanup?.();app?.closeDatabase();globalThis.setTimeout = originalSetTimeout;
   fs.rmSync(output, { force: true });dom.window.close();delete globalThis.__testRouter;

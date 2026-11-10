@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { BookOpen, Clock3, Repeat2 } from 'lucide-react';
 import GlassCard from './GlassCard';
 import ExerciseTutorialModal from './ExerciseTutorialModal';
+import ExerciseLoadTracker from './ExerciseLoadTracker';
 import { exerciseVisualAlt, getExerciseVisual } from '@/data/exerciseVisuals';
 import { exerciseMuscleGroups } from '@/utils/workoutGenerator';
 
@@ -82,6 +83,7 @@ export default function WorkoutCard({ workout, searchSwaps, onSwap }) {
                     <div className="flex shrink-0 flex-wrap gap-2">
                       {searchSwaps && <button type="button" onClick={() => { setSwapIndex(swapIndex === index ? null : index); setSwapQuery(''); setSwapError(''); }} aria-expanded={swapIndex === index} className="rounded-xl bg-cyan-300/10 px-3 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/20"><Repeat2 size={15} className="mr-1 inline" />Replace</button>}
                       <button type="button" onClick={() => setExercise(item)} className="rounded-xl bg-white/10 px-3 py-2 text-sm hover:bg-white/20">Tutorial</button>
+                      <ExerciseLoadTracker exercise={item} />
                     </div>
                   </div>
                   <p className="mt-2 text-sm text-slate-400">{item.equipment} • {item.muscle || item.muscles?.join(', ')} • {item.difficulty}</p>

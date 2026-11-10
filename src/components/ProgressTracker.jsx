@@ -14,6 +14,7 @@ import {
   deleteWeightLog,
   deleteWorkoutLog,
   getPhotoLogs,
+  getExerciseLoads,
   getPRLogs,
   getWeightLogs,
   getWorkoutLogs,
@@ -76,31 +77,34 @@ function workoutStreak(workoutLogs, plan) {
 }
 
 async function readProgressData(includePhotos = true) {
-  const [weight, prs, workouts, photoLogs, planner] = await Promise.all([
-    getWeightLogs(), getPRLogs(), getWorkoutLogs(), includePhotos ? getPhotoLogs() : null, loadPlannerData()
+  const [weight, prs, loads, workouts, photoLogs, planner] = await Promise.all([
+    getWeightLogs(), getPRLogs(), getExerciseLoads(), getWorkoutLogs(), includePhotos ? getPhotoLogs() : null, loadPlannerData()
   ]);
   const photos = photoLogs ? await Promise.all(photoLogs.map(async (photo) => {
     if (!photo.storagePath) return photo;
     try { return { ...photo, imageUrl: await loadProgressPhoto(photo.storagePath), revokeUrl: true }; }
     catch { return { ...photo, imageUrl: '', loadError: true }; }
   })) : null;
-  return { weight, prs, workouts, photos, plan: planner.plan, warning: '' };
+  return { weight, prs, loads, workouts, photos, plan: planner.plan, warning: '' };
 }
 
 export default function ProgressTracker() {
   const { loading: storageLoading } = useStorageState();
   const [weightLogs, setWeightLogs] = useState([]);
   const [prLogs, setPrLogs] = useState([]);
+  const [loadLogs, setLoadLogs] = useState([]);
   const [workoutLogs, setWorkoutLogs] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [plan, setPlan] = useState(null);
   const [selectedExercise, setSelectedExercise] = useState('');
+  const [selectedLoadExercise, setSelectedLoadExercise] = useState('');
   const [action, setAction] = useState('load');
   const [status, setStatus] = useState('');
 
   function applyData(data) {
     setWeightLogs(data.weight);
     setPrLogs(data.prs);
+    setLoadLogs(data.loads);
     setWorkoutLogs(data.workouts);
     if (data.photos) setPhotos(data.photos);
     setPlan(data.plan);
@@ -122,6 +126,7 @@ export default function ProgressTracker() {
         if (active) {
           setWeightLogs(data.weight);
           setPrLogs(data.prs);
+          setLoadLogs(data.loads);
           setWorkoutLogs(data.workouts);
           setPhotos(data.photos);
           setPlan(data.plan);
@@ -310,6 +315,10 @@ export default function ProgressTracker() {
   const exerciseNames = useMemo(() => [...new Set(prLogs.map((item) => item.exercise))].sort(), [prLogs]);
   const activeExercise = exerciseNames.includes(selectedExercise) ? selectedExercise : exerciseNames[0] || '';
   const prChart = prLogs.filter((item) => item.exercise === activeExercise).map((item) => ({ date: item.date, weight: Number(item.weight) || 0, reps: Number(item.reps) || 0 }));
+  const loadExerciseNames = useMemo(() => [...new Set(loadLogs.map((item) => item.exercise))].sort(), [loadLogs]);
+  const activeLoadExercise = loadExerciseNames.includes(selectedLoadExercise) ? selectedLoadExercise : loadExerciseNames[0] || '';
+  const loadHistory = loadLogs.filter((item) => item.exercise === activeLoadExercise);
+  const loadChart = loadHistory.slice(-12).map((item) => ({ date: item.date, weight: Number(item.weight), sets: item.sets, reps: item.reps }));
   const planExerciseNames = useMemo(() => [...new Set((plan?.weekly || []).flatMap((day) => day.exercises || []).map((item) => item.name))], [plan]);
   const achievements = [
     ['First workout', workoutLogs.length > 0],
@@ -402,6 +411,18 @@ export default function ProgressTracker() {
         </form>
         <div className="mt-4 h-56 min-w-0">{prChart.length ? <ResponsiveContainer width="100%" height="100%"><LineChart data={prChart}><CartesianGrid stroke="rgba(148,163,184,.12)" vertical={false} /><XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 11 }} /><YAxis width={42} domain={['dataMin - 5', 'dataMax + 5']} tick={{ fill: '#94a3b8', fontSize: 11 }} /><Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12 }} /><Line type="monotone" dataKey="weight" stroke="#a78bfa" strokeWidth={3} dot={{ fill: '#a78bfa' }} /></LineChart></ResponsiveContainer> : <p className="rounded-2xl bg-white/5 p-4 text-sm text-slate-300">Log a lift to track that exercise over time.</p>}</div>
         {prLogs.slice(-4).reverse().map((item) => <div key={item.id} className="mt-2 flex justify-between gap-3 rounded-xl bg-white/5 p-3 text-sm"><span>{item.exercise}: <b>{item.weight} × {item.reps}</b></span><button type="button" disabled={busy} onClick={() => removePR(item.id)} className="text-rose-200 disabled:opacity-50">Delete</button></div>)}
+      </GlassCard>
+
+      <GlassCard className="min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-bold">Exercise weight trends</h2>
+          {loadExerciseNames.length > 0 && <select aria-label="Exercise shown in weight trend" className="field max-w-52" value={activeLoadExercise} onChange={(event) => setSelectedLoadExercise(event.target.value)}>{loadExerciseNames.map((name) => <option key={name}>{name}</option>)}</select>}
+        </div>
+        <p className="mt-2 text-sm text-slate-400">Use Log weight beside an exercise tutorial to save each session. Compare weights at similar reps and form.</p>
+        <div className="mt-4 h-56 min-w-0">
+          {loadChart.length ? <ResponsiveContainer width="100%" height="100%"><LineChart data={loadChart}><CartesianGrid stroke="rgba(148,163,184,.12)" vertical={false} /><XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 11 }} /><YAxis width={42} domain={[0, 'auto']} tick={{ fill: '#94a3b8', fontSize: 11 }} /><Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12 }} formatter={(value, name, props) => [`${value} lb · ${props.payload.sets} × ${props.payload.reps}`, 'Weight']} /><Line type="monotone" dataKey="weight" stroke="#22d3ee" strokeWidth={3} dot={{ fill: '#22d3ee' }} /></LineChart></ResponsiveContainer> : <p className="rounded-2xl bg-white/5 p-4 text-sm text-slate-300">No exercise weights logged yet. Start from your workout plan or exercise search.</p>}
+        </div>
+        {loadHistory.length > 0 && <p className="mt-3 text-sm text-cyan-100">Latest: <b>{loadHistory.at(-1).weight} lb</b> · {loadHistory.at(-1).sets} sets × {loadHistory.at(-1).reps} reps on {loadHistory.at(-1).date}</p>}
       </GlassCard>
 
       <GlassCard>

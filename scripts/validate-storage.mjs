@@ -23,6 +23,11 @@ const food = await db.addNutritionLog({ meal: 'Rice', date: '2026-11-02', calori
 assert.equal((await db.getNutritionLogs('2026-11-02')).length, 1);assert.equal((await db.getNutritionLogs('2026-11-03')).length, 0);
 await db.deleteNutritionLog(food.id);assert.equal((await db.getNutritionLogs()).length, 0);
 const pr = await db.addPRLog({ exercise: 'Squat', date: '2026-11-02', weight: 100, reps: 5 });
+const load = await db.addExerciseLoad({ exercise: 'Goblet Squat', date: '2026-11-02', weight: 25, sets: 3, reps: 10 });
+await db.addExerciseLoad({ exercise: 'Goblet Squat', date: '2026-11-04', weight: 30, sets: 3, reps: 10 });
+await db.addExerciseLoad({ exercise: 'Cable Row', date: '2026-11-03', weight: 65, sets: 3, reps: 8 });
+assert.deepEqual((await db.getExerciseLoads('Goblet Squat')).map((row) => row.weight), [25, 30]);
+await assert.rejects(db.addExerciseLoad({ exercise: 'Goblet Squat', date: '2026-11-04', weight: -5, sets: 3, reps: 10 }), /valid date/);
 const workout = await db.addWorkoutLog({ date: '2026-11-02', completed: true });
 assert.equal((await db.getPRLogs()).length, 1);assert.equal((await db.getWorkoutLogs()).length, 1);
 const bytes = Uint8Array.from([137,80,78,71,13,10,26,10]);
@@ -33,14 +38,21 @@ await checkPhoto();
 await assert.rejects(db.saveProgressPhoto(new Blob(['bad'], { type: 'text/plain' }), {}), /JPEG/);
 await assert.rejects(db.saveProgressPhoto(new Blob([new Uint8Array(5*1024*1024+1)], { type: 'image/png' }), {}), /5 MB/);
 const backup = JSON.parse(JSON.stringify(await db.exportBackup()));assert.equal(backup.photos.length, 1);
+assert.equal(backup.values.progressExerciseLoads.length, 3, 'Exercise weight history must be in backups.');
 await db.clearLocalData();assert.equal((await db.getPhotoLogs()).length, 0);assert.equal((await db.loadPlannerData()).plan, null);
 assert.equal(legacy.size, 0);await db.initializeStorage();assert.equal((await db.getWeightLogs()).length, 0, 'Deletion must not resurrect migrated data.');
+assert.equal((await db.getExerciseLoads()).length, 0);
 await db.importBackup(backup);db.closeDatabase();
 assert.equal((await db.loadPlannerData()).profile.days, 6);assert.equal((await db.getWeightLogs()).length, 30);await checkPhoto();
+assert.equal((await db.getExerciseLoads('Goblet Squat')).length, 2, 'Exercise loads must survive backup restore.');
+const oldBackup = structuredClone(backup);delete oldBackup.values.progressExerciseLoads;
+await db.importBackup(oldBackup);assert.equal((await db.getExerciseLoads()).length, 0, 'Older backups without exercise loads remain importable.');
+await db.importBackup(backup);
 const before = await db.exportBackup();
 for (const broken of [
   { ...backup, version: 999 }, { ...backup, values: { ...backup.values, unknown: true } },
   { ...backup, values: { ...backup.values, progressWeightLogs: 'not a log' } }, { ...backup, photos: [] },
+  { ...backup, values: { ...backup.values, progressExerciseLoads: [{ ...backup.values.progressExerciseLoads[0], reps: -2 }] } },
   { ...backup, photos: [{ ...backup.photos[0], data: '%%%' }] },
   { ...backup, values: { ...backup.values, fitnessPlannerPlan: { weekly: [] } } },
   { ...backup, values: { ...backup.values, fitnessPlannerProfile: { unsupported: () => {} } } }
@@ -49,6 +61,7 @@ for (const broken of [
   assert.deepEqual(after.values, before.values);assert.deepEqual(after.photos, before.photos);
 }
 await db.deleteProgressPhoto(photo);await assert.rejects(db.loadProgressPhoto(photo.storagePath));assert.equal((await db.getPhotoLogs()).length, 0);
+await db.deleteExerciseLoad(load.id);assert.equal((await db.getExerciseLoads('Goblet Squat')).length, 1);
 await db.deletePRLog(pr.id);await db.deleteWorkoutLog(workout.id);assert.equal((await db.getPRLogs()).length, 0);assert.equal((await db.getWorkoutLogs()).length, 0);
 db.closeDatabase();delete globalThis.indexedDB;await assert.rejects(db.initializeStorage(), /unavailable/);
 globalThis.indexedDB = indexedDB;await db.initializeStorage();assert.equal((await db.loadPlannerData()).profile.days, 6, 'Failed storage open must be retryable.');

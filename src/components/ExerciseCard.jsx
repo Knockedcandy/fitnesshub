@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import ExerciseTutorialModal from './ExerciseTutorialModal';
+import ExerciseLoadTracker from './ExerciseLoadTracker';
 import { exerciseVisualAlt, getExerciseVisual } from '@/data/exerciseVisuals';
 
 export default function ExerciseCard({ exercise }) {
@@ -23,9 +24,12 @@ export default function ExerciseCard({ exercise }) {
         <span className="absolute bottom-3 left-3 rounded-full border border-cyan-200/20 bg-slate-950/80 px-3 py-1 text-xs font-bold text-cyan-100 backdrop-blur">{visual.label}</span>
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-3">
           <div><h2 className="text-xl font-bold">{exercise.name}</h2><p className="mt-1 text-sm text-slate-400">{exercise.muscle} • {exercise.equipment} • {exercise.difficulty}</p></div>
-          <button type="button" className="rounded-xl bg-white/10 px-3 py-2 text-sm hover:bg-white/20" onClick={() => setOpen(true)}>Tutorial</button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="rounded-xl bg-white/10 px-3 py-2 text-sm hover:bg-white/20" onClick={() => setOpen(true)}>Tutorial</button>
+            <ExerciseLoadTracker exercise={exercise} />
+          </div>
         </div>
         <p className="mt-3 flex-1 text-slate-300">{exercise.description}</p>
         <div className="mt-4 flex flex-wrap gap-2">{(exercise.alternatives || []).slice(0, 3).map((alternative) => <span key={alternative} className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs text-cyan-200">Swap: {alternative}</span>)}</div>

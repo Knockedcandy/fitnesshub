@@ -1,11 +1,11 @@
-# FitLifeHub expanded movement artwork
+# FitLifeHub movement artwork
 
-The existing 78 movement guides remain in `public/exercises/movements-v2/`.
-373 of the 838 imported exercises now have custom 1536×1024 WebP two-panel
-guides. The completed names are listed in `src/data/openExerciseArt.json`; their
-files use `exerciseAssetSlug(name)` in the same movement folder. The other 465
-entries retain written tutorials and intentionally have no image path. Never
-point an unreviewed exercise at another exercise's illustration.
+Current bundle: 915 of 916 searchable exercises have matching WebP guides in
+`public/exercises/movements-v2/`. The only text-only entry is Side Lying Groin
+Stretch. The batch notes below describe earlier artwork progress; their counts
+are historical.
+
+## Earlier batch history
 
 Completed: 3/4 Sit-Up, 90/90 Hamstring, Ab Crunch Machine, Ab Roller, Adductor,
 Adductor/Groin, Advanced Kettlebell Windmill, All Fours Quad Stretch,

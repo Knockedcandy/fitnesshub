@@ -7,7 +7,7 @@ repository and automatically build on pushes.
 
 ## Before the first push
 
-Use Node.js 22.13.0 or later. From the project root, run:
+Use Node.js 24.22.1. From the project root, run:
 
 ```bash
 npm ci
@@ -26,9 +26,18 @@ excludes `.env.local`, `.dev.vars`, dependencies, and generated build output.
 In Cloudflare, open Workers & Pages, select **Create application**, choose
 **GitHub**, and select your repository. Use the directory that
 contains `package.json` as the root directory. Set the production branch to
-your main branch, the build command to `npm run build:vinext`, and the deploy
-command to `npm run deploy:vinext -- --skip-build`. The included config names
-the Worker `fitlifehub`; keep the dashboard Worker name consistent.
+your main branch, leave the build command empty, and set the deploy command to
+`npm run deploy:vinext`. That command builds and deploys the app. If you enable
+preview builds, set the preview command to
+`npx vinext-cloudflare previews deploy`. The included config names the Worker
+`fitnesshub`; keep the dashboard Worker name consistent. If your existing
+Cloudflare Worker has a different name, change `worker.name` in
+`cloudflare.config.ts` to match it before pushing.
+
+Set `NODE_VERSION` to `24.22.1` in Build Variables and Secrets if Cloudflare
+selects an older Node version. The default `npx wrangler deploy` command
+tries to configure this project with OpenNext instead of using its vinext
+configuration.
 
 The live site will use a `*.workers.dev` URL until you attach a custom domain.
 After you know the final HTTPS origin, configure the following variables for
@@ -49,7 +58,7 @@ local environment file. Without a provider key, the coach serves built-in
 guidance. Run `npm run check:deploy` with production variables available to
 verify the URL and legal settings before launch.
 
-Workout data and photos remain in each browser's IndexedDB. The site does not
+Workout data, exercise weight history, and photos remain in each browser's IndexedDB. The site does not
 sync records between devices. Moving from one hostname to another changes the
 storage origin; export a backup from My Data and restore it on the new URL.
 Live-coach quotas use memory in each Worker instance and reset when instances
